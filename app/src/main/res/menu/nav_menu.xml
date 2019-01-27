@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/nav_menu">
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_number"
+            android:icon="@drawable/bianhao"
+            android:title="编号"/>
+        <item
+            android:id="@+id/nav_name"
+            android:icon="@drawable/name"
+            android:title="姓名" />
+        <item
+            android:id="@+id/nav_age"
+            android:icon="@drawable/nianling"
+            android:title="年龄"/>
+        <item
+            android:id="@+id/nav_tel"
+            android:icon="@drawable/shouji"
+            android:title="手机"/>
+    </group>
+</menu>

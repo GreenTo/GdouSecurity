@@ -6,7 +6,7 @@ import android.support.v7.app.AppCompatActivity;
 
 public class SplashActivity extends AppCompatActivity {
 
-    private  final int SPLASH_DISPLAY_LENGHT = 1000;//两秒后进入系统，时间可自行调整
+    private  final int SPLASH_DISPLAY_LENGHT = 500;//时间可自行调整
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -16,7 +16,7 @@ public class SplashActivity extends AppCompatActivity {
         new android.os.Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                Intent mainIntent = new Intent(SplashActivity.this,MapActivity.class);
+                Intent mainIntent = new Intent(SplashActivity.this,LoginActivity.class);
                 startActivity(mainIntent);
                 finish();
             }

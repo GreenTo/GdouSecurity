@@ -1,24 +1,9 @@
-package com.gdou.security.Application;
+package com.gdou.security.data;
 
 public class UserData{
 
-    private static long id;
+    public static long id;
 
-    private static String username;
+    public static String username;
 
-    public static long getId() {
-        return id;
-    }
-
-    public static void setId(long id) {
-        id = id;
-    }
-
-    public static String getUsername() {
-        return username;
-    }
-
-    public static void setUsername(String username) {
-        username = username;
-    }
 }
