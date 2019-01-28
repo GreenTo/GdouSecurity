@@ -92,7 +92,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                             editor.apply();
                             status = LOGIN_SUCCESS;
                             UserData.username = username;
-                            Intent intent = new Intent(LoginActivity.this, TracingActivity.class);
+                            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                             intent.putExtra("account",username);
                             startActivity(intent);
                         }

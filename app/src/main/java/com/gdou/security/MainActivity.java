@@ -16,6 +16,7 @@ import android.widget.ImageView;
 
 import com.gdou.security.data.UserData;
 import com.gdou.security.data.UserResult;
+import com.gdou.security.utils.BitmapUtil;
 import com.gdou.security.utils.HttpUtil;
 import com.google.gson.Gson;
 
@@ -70,6 +71,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Intent intent = getIntent();
         account = intent.getStringExtra("account");
         getInformation();
+        //初始化BitmapUtil
+        BitmapUtil.init();
     }
 
     private void getInformation(){
@@ -118,5 +121,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             default:
                 break;
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        BitmapUtil.clear();
     }
 }

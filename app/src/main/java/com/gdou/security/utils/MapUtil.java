@@ -182,11 +182,11 @@ public class MapUtil {
             if (screenPoint.y < 200 || screenPoint.y > TrackApplication.screenHeight - 500
                     || screenPoint.x < 200 || screenPoint.x > TrackApplication.screenWidth - 200
                     || null == mapStatus) {
-                animateMapStatus(currentPoint, 15.0f);
+                animateMapStatus(currentPoint, 18.0f);
             }
         } else if (null == mapStatus) {
             // 第一次定位时，聚焦底图
-            setMapStatus(currentPoint, 15.0f);
+            setMapStatus(currentPoint, 18.0f);
         }
 
         if (showMarker) {

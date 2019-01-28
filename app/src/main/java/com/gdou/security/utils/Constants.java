@@ -44,7 +44,7 @@ public final class Constants {
     /**
      * 实时定位间隔(单位:秒)
      */
-    public static final int LOC_INTERVAL = 10;
+    public static final int LOC_INTERVAL = 1;
 
     /**
      * 最后一次定位信息

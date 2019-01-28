@@ -39,14 +39,20 @@ import com.baidu.trace.model.StatusCodes;
 import com.baidu.trace.model.TraceLocation;
 import com.gdou.security.model.CurrentLocation;
 import com.gdou.security.receiver.TrackReceiver;
-import com.gdou.security.utils.BitmapUtil;
 import com.gdou.security.utils.CommonUtil;
 import com.gdou.security.utils.Constants;
+import com.gdou.security.utils.HttpUtil;
 import com.gdou.security.utils.MapUtil;
 import com.gdou.security.utils.ViewUtil;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
 
 /**
  * 轨迹追踪
@@ -105,6 +111,9 @@ public class TracingActivity extends BaseActivity implements View.OnClickListene
      */
     public int packInterval = Constants.DEFAULT_PACK_INTERVAL;
 
+    //用户id
+    private long id;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -122,16 +131,16 @@ public class TracingActivity extends BaseActivity implements View.OnClickListene
         if (ContextCompat.checkSelfPermission(TracingActivity.this,Manifest.permission.ACCESS_LOCATION_EXTRA_COMMANDS) != PackageManager.PERMISSION_GRANTED) {
             permissionList.add(Manifest.permission.ACCESS_LOCATION_EXTRA_COMMANDS);
         }
-        if (ContextCompat.checkSelfPermission(TracingActivity.this,Manifest.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS) != PackageManager.PERMISSION_GRANTED) {
-            permissionList.add(Manifest.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
-        }
+        //if (ContextCompat.checkSelfPermission(TracingActivity.this,Manifest.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS) != PackageManager.PERMISSION_GRANTED) {
+        //    permissionList.add(Manifest.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+        //}
         if (!permissionList.isEmpty()) {
             String [] permissions = permissionList.toArray(new String[permissionList.size()]);
             ActivityCompat.requestPermissions(TracingActivity.this, permissions, 1);
         }
-        //初始化BitmapUtil
-        BitmapUtil.init();
         init();
+        Intent intent = getIntent();
+        id = intent.getLongExtra("id",0);
     }
 
     @Override
@@ -383,6 +392,8 @@ public class TracingActivity extends BaseActivity implements View.OnClickListene
                 if (null != mapUtil) {
                     mapUtil.updateStatus(currentLatLng, true);
                 }
+
+                upLocation(String.valueOf(currentLatLng.latitude),String.valueOf(currentLatLng.longitude),id);
             }
 
         };
@@ -637,7 +648,7 @@ public class TracingActivity extends BaseActivity implements View.OnClickListene
     @Override
     protected void onStop() {
         super.onStop();
-        stopRealTimeLoc();
+        //stopRealTimeLoc();
     }
 
     @Override
@@ -645,12 +656,28 @@ public class TracingActivity extends BaseActivity implements View.OnClickListene
         super.onDestroy();
         mapUtil.clear();
         stopRealTimeLoc();
-        BitmapUtil.clear();
     }
 
     @Override
     protected int getContentViewId() {
         return R.layout.activity_tracing;
+    }
+
+    public void upLocation(String latitude,String longitude,long id) {
+        String address = "http://120.77.149.103:1234/admin/sendStation";
+        HttpUtil.sendLocationRequest(address, id, latitude, longitude, new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                e.printStackTrace();
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                ResponseBody body = response.body();
+                byte[] bytes = body.bytes();
+                String result = new String(bytes);
+            }
+        });
     }
 
 }
