@@ -34,7 +34,13 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
     private String address;
 
-    private boolean flag;
+    private static long SERVE_ERROR = 1;
+
+    private static long CLIENT_ERROR = 2;
+
+    private static long LOGIN_SUCCESS = 3;
+
+    private long status = 0;
 
     private SharedPreferences pref;
 
@@ -63,12 +69,13 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             case R.id.sign:
                 username = usernameText.getText().toString();
                 password = passwordText.getText().toString();
-                address = "http://192.168.2.125:1234/admin/check";
+                address = "http://120.77.149.103:1234/admin/check";
 
                 HttpUtil.loginRequest(address, username, password, new Callback() {
                     @Override
                     public void onFailure(Call call, IOException e) {
                         e.printStackTrace();
+                        status = SERVE_ERROR;
                     }
 
                     @Override
@@ -77,22 +84,24 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                         byte[] bytes = body.bytes();
                         String result = new String(bytes);
                         if (!result.contains("200")){
-                            flag = true;
+                            status = CLIENT_ERROR;
                         }else {
                             editor = pref.edit();
                             editor.putString("username",username);
                             editor.putString("password",password);
                             editor.apply();
+                            status = LOGIN_SUCCESS;
                             UserData.username = username;
-                            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                            Intent intent = new Intent(LoginActivity.this, TracingActivity.class);
                             intent.putExtra("account",username);
                             startActivity(intent);
                         }
                     }
                 });
-                if (flag) {
+                if (status == CLIENT_ERROR) {
                     Toast.makeText(LoginActivity.this, "用户名或密码错误！", Toast.LENGTH_SHORT).show();
-                    flag = false;
+                } else if (status == SERVE_ERROR) {
+                    Toast.makeText(LoginActivity.this,"服务器发生错误！",Toast.LENGTH_SHORT).show();
                 }
                 break;
             default:

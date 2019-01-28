@@ -72,20 +72,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         getInformation();
     }
 
-    //@Override
-    //public boolean onOptionsItemSelected(MenuItem item) {
-    //    switch (item.getItemId()) {
-    //        case android.R.id.home:
-    //            drawerLayout.openDrawer(GravityCompat.START);
-    //            break;
-    //        default:
-    //            break;
-    //    }
-    //    return true;
-    //}
-
     private void getInformation(){
-        String address = "http://192.168.2.125:1234/admin/getInfo";
+        String address = "http://120.77.149.103:1234/admin/getInfo";
         String username = UserData.username;
         System.out.println(username);
         HttpUtil.getInformation(address, account, new Callback() {
@@ -123,7 +111,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 drawerLayout.openDrawer(GravityCompat.START);
                 break;
             case R.id.startButton:
-                Intent intent = new Intent(MainActivity.this, MapActivity.class);
+                Intent intent = new Intent(MainActivity.this, TracingActivity.class);
                 intent.putExtra("id",userResult.data.guardId);
                 startActivity(intent);
                 break;
