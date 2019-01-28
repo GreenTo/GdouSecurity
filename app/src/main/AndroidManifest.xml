@@ -70,14 +70,15 @@
 
         <activity android:name=".LoginActivity" />
 
-        <!--<service-->
-            <!--android:name=".service.TraceService"-->
-            <!--android:enabled="true"-->
-            <!--android:exported="false"-->
-            <!--android:process=":track"/>-->
-
         <activity android:name=".TracingActivity"
             android:screenOrientation="portrait"/>
+
+        <activity android:name=".TracingOptionsActivity"/>
+
+        <activity android:name=".TrackQueryActivity"
+            android:screenOrientation="portrait"/>
+
+        <activity android:name=".TrackQueryOptionsActivity"/>
 
     </application>
 

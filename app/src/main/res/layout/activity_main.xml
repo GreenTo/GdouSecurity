@@ -60,6 +60,15 @@
 
         </RelativeLayout>
 
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/search_trace"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|right"
+            android:layout_margin="15dp"
+            android:elevation="8dp"
+            android:src="@drawable/chaxun"/>
+
     </FrameLayout>
 
     <android.support.design.widget.NavigationView

@@ -3,6 +3,7 @@ package com.gdou.security;
 import android.app.Activity;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.LinearLayout;
 
 //import com.baidu.track.utils.ViewUtil;
 
@@ -36,20 +37,20 @@ public abstract class BaseActivity extends Activity {
      *
      * @param listener
      */
-    //public void setOnClickListener(View.OnClickListener listener) {
-    //    LinearLayout layout = (LinearLayout) findViewById(R.id.layout_top);
-    //    LinearLayout optionsButton = (LinearLayout) layout.findViewById(R.id.btn_activity_options);
-    //    optionsButton.setOnClickListener(listener);
-    //}
+    public void setOnClickListener(View.OnClickListener listener) {
+        LinearLayout layout = (LinearLayout) findViewById(R.id.layout_top);
+        LinearLayout optionsButton = (LinearLayout) layout.findViewById(R.id.btn_activity_options);
+        optionsButton.setOnClickListener(listener);
+    }
 
     /**
      * 不显示设置按钮
      */
-    //public void setOptionsButtonInVisible() {
-    //    LinearLayout layout = (LinearLayout) findViewById(R.id.layout_top);
-    //    LinearLayout optionsButton = (LinearLayout) layout.findViewById(R.id.btn_activity_options);
-    //    optionsButton.setVisibility(View.INVISIBLE);
-    //}
+    public void setOptionsButtonInVisible() {
+        LinearLayout layout = (LinearLayout) findViewById(R.id.layout_top);
+        LinearLayout optionsButton = (LinearLayout) layout.findViewById(R.id.btn_activity_options);
+        optionsButton.setVisibility(View.INVISIBLE);
+    }
 
     /**
      * 回退事件

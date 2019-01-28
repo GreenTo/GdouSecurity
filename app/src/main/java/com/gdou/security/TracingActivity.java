@@ -2,9 +2,12 @@ package com.gdou.security;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -118,6 +121,7 @@ public class TracingActivity extends BaseActivity implements View.OnClickListene
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setTitle(R.string.tracing_title);
+        setOnClickListener(this);
         List<String> permissionList = new ArrayList<>();
         if (ContextCompat.checkSelfPermission(TracingActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             permissionList.add(Manifest.permission.ACCESS_FINE_LOCATION);
@@ -131,9 +135,6 @@ public class TracingActivity extends BaseActivity implements View.OnClickListene
         if (ContextCompat.checkSelfPermission(TracingActivity.this,Manifest.permission.ACCESS_LOCATION_EXTRA_COMMANDS) != PackageManager.PERMISSION_GRANTED) {
             permissionList.add(Manifest.permission.ACCESS_LOCATION_EXTRA_COMMANDS);
         }
-        //if (ContextCompat.checkSelfPermission(TracingActivity.this,Manifest.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS) != PackageManager.PERMISSION_GRANTED) {
-        //    permissionList.add(Manifest.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
-        //}
         if (!permissionList.isEmpty()) {
             String [] permissions = permissionList.toArray(new String[permissionList.size()]);
             ActivityCompat.requestPermissions(TracingActivity.this, permissions, 1);
@@ -188,11 +189,11 @@ public class TracingActivity extends BaseActivity implements View.OnClickListene
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
-            // 追踪选项设置
-            //case R.id.btn_activity_options:
-            //    ViewUtil.startActivityForResult(this, TracingOptionsActivity.class, Constants
-            //            .REQUEST_CODE);
-            //    break;
+             //追踪选项设置
+            case R.id.btn_activity_options:
+                ViewUtil.startActivityForResult(this, TracingOptionsActivity.class, Constants
+                        .REQUEST_CODE);
+                break;
 
             case R.id.btn_trace:
                 if (trackApp.isTraceStarted) {
@@ -678,6 +679,31 @@ public class TracingActivity extends BaseActivity implements View.OnClickListene
                 String result = new String(bytes);
             }
         });
+    }
+
+    @Override
+    public void onBackPressed() {
+        exitDialog(this).show();
+    }
+
+    private Dialog exitDialog(Context context) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle("结束巡逻");
+        builder.setMessage("确定要结束巡逻吗？");
+        builder.setPositiveButton("确定",new DialogInterface.OnClickListener(){
+
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                finish();
+            }
+        });
+        builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+
+            }
+        });
+        return builder.create();
     }
 
 }

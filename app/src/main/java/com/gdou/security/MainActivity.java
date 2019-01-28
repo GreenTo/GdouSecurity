@@ -1,7 +1,9 @@
 package com.gdou.security;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -17,6 +19,7 @@ import android.widget.ImageView;
 import com.gdou.security.data.UserData;
 import com.gdou.security.data.UserResult;
 import com.gdou.security.utils.BitmapUtil;
+import com.gdou.security.utils.CommonUtil;
 import com.gdou.security.utils.HttpUtil;
 import com.google.gson.Gson;
 
@@ -53,6 +56,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private static String account;
 
+    private FloatingActionButton searchTraceButton;
+
+    private TrackApplication trackApp;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -68,9 +76,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         nameItem = menu.findItem(R.id.nav_name);
         ageItem = menu.findItem(R.id.nav_age);
         numberItem = menu.findItem(R.id.nav_number);
+        //百度地图
+        searchTraceButton = findViewById(R.id.search_trace);
+        searchTraceButton.setOnClickListener(this);
         Intent intent = getIntent();
         account = intent.getStringExtra("account");
         getInformation();
+        trackApp = (TrackApplication) getApplicationContext();
         //初始化BitmapUtil
         BitmapUtil.init();
     }
@@ -118,6 +130,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 intent.putExtra("id",userResult.data.guardId);
                 startActivity(intent);
                 break;
+            case R.id.search_trace:
+                Intent intent1 = new Intent(MainActivity.this, TrackQueryActivity.class);
+                startActivity(intent1);
+                break;
             default:
                 break;
         }
@@ -126,6 +142,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        CommonUtil.saveCurrentLocation(trackApp);
+        if (trackApp.trackConf.contains("is_trace_started")
+                && trackApp.trackConf.getBoolean("is_trace_started", true)) {
+            // 退出app停止轨迹服务时，不再接收回调，将OnTraceListener置空
+            trackApp.mClient.setOnTraceListener(null);
+            trackApp.mClient.stopTrace(trackApp.mTrace, null);
+        } else {
+            trackApp.mClient.clear();
+        }
+        trackApp.isTraceStarted = false;
+        trackApp.isGatherStarted = false;
+        SharedPreferences.Editor editor = trackApp.trackConf.edit();
+        editor.remove("is_trace_started");
+        editor.remove("is_gather_started");
+        editor.apply();
         BitmapUtil.clear();
     }
 }
