@@ -1,11 +1,26 @@
 package com.gdou.security;
 
+import android.app.Activity;
+import android.content.ContentUris;
+import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.Rect;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.DocumentsContract;
+import android.provider.MediaStore;
+import android.support.annotation.RequiresApi;
+import android.support.design.widget.FloatingActionButton;
+import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.CompoundButton;
+import android.widget.Toast;
 
 import com.baidu.mapapi.map.BaiduMap;
 import com.baidu.mapapi.map.InfoWindow;
@@ -43,11 +58,21 @@ import com.gdou.security.dialog.TrackAnalysisInfoLayout;
 import com.gdou.security.utils.BitmapUtil;
 import com.gdou.security.utils.CommonUtil;
 import com.gdou.security.utils.Constants;
+import com.gdou.security.utils.HttpUtil;
 import com.gdou.security.utils.MapUtil;
 import com.gdou.security.utils.ViewUtil;
 
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
 
 /**
  * 轨迹查询
@@ -206,6 +231,10 @@ public class TrackQueryActivity extends BaseActivity
      */
     private long lastQueryTime = 0;
 
+    private FloatingActionButton sceenButton;
+
+    private MapView mapView;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -213,6 +242,8 @@ public class TrackQueryActivity extends BaseActivity
         setOnClickListener(this);
         trackApp = (TrackApplication) getApplicationContext();
         init();
+        sceenButton = findViewById(R.id.screen_button);
+        sceenButton.setOnClickListener(this);
     }
 
     /**
@@ -221,7 +252,9 @@ public class TrackQueryActivity extends BaseActivity
     private void init() {
         viewUtil = new ViewUtil();
         mapUtil = MapUtil.getInstance();
-        mapUtil.init((MapView) findViewById(R.id.track_query_mapView));
+        //mapUtil.init((MapView) findViewById(R.id.track_query_mapView));
+        mapView = findViewById(R.id.track_query_mapView);
+        mapUtil.init(mapView);
         mapUtil.baiduMap.setOnMarkerClickListener(this);
         mapUtil.setCenter(trackApp);
         trackAnalysisInfoLayout = new TrackAnalysisInfoLayout(this, mapUtil.baiduMap);
@@ -312,6 +345,13 @@ public class TrackQueryActivity extends BaseActivity
         }
 
         queryHistoryTrack();
+
+        if (resultCode == Activity.RESULT_OK) {//是否选择，没选择就不会继续
+            Uri uri = data.getData();//得到uri，后面就是将uri转化成file的过程。
+            String img_path = getPath(this, uri);
+            File file = new File(img_path);
+            uploadPic(file);
+        }
     }
 
     /**
@@ -402,17 +442,59 @@ public class TrackQueryActivity extends BaseActivity
             case R.id.btn_activity_options:
                 ViewUtil.startActivityForResult(this, TrackQueryOptionsActivity.class, Constants.REQUEST_CODE);
                 break;
-
+            case R.id.screen_button:
+                //Bitmap bitmap = captureScreen(this);
+                //File file;
+                //try {
+                //    file = saveBitmapFile(bitmap,System.currentTimeMillis() + ".png");
+                //    uploadPic(file);
+                //} catch (Exception e) {
+                //    e.printStackTrace();
+                //}
+                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                intent.setType("image/*");
+                intent.addCategory(Intent.CATEGORY_OPENABLE);
+                startActivityForResult(intent, 1);
+                break;
             default:
                 break;
         }
+    }
+
+    private void uploadPic(File file) {
+        HttpUtil.sendPic(file, new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                e.printStackTrace();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(trackApp, "服务器出错！", Toast.LENGTH_SHORT);
+                    }
+                });
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                ResponseBody body = response.body();
+                byte[] bytes = body.bytes();
+                String result = new String(bytes);
+                if (result.contains("200")) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(trackApp, "上传图片成功！", Toast.LENGTH_SHORT);
+                        }
+                    });
+                }
+            }
+        });
     }
 
     /**
      * 轨迹分析覆盖物点击事件
      *
      * @param marker
-     *
      * @return
      */
     @Override
@@ -737,4 +819,233 @@ public class TrackQueryActivity extends BaseActivity
     protected int getContentViewId() {
         return R.layout.activity_trackquery;
     }
+
+    public Bitmap captureScreen(Activity context) {
+        //View cv = context.getWindow().getDecorView();
+        //cv.setDrawingCacheEnabled(true);
+        //cv.buildDrawingCache();
+        //Bitmap bmp = cv.getDrawingCache();
+        //if (bmp == null) {
+        //    return null;
+        //}
+        //bmp.setHasAlpha(false);
+        //bmp.prepareToDraw();
+        //return bmp;
+
+        ////获取当前屏幕的大小
+        //int width = getWindow().getDecorView().getRootView().getWidth();
+        //int height = getWindow().getDecorView().getRootView().getHeight();
+        ////找到当前页面的跟布局
+        //View view =  getWindow().getDecorView().getRootView();
+        ////设置缓存
+        //view.setDrawingCacheEnabled(false);
+        //view.buildDrawingCache();
+        ////从缓存中获取当前屏幕的图片
+        //Bitmap temBitmap = view.getDrawingCache();
+        ////生成相同大小的图片
+        //Bitmap bitmap = Bitmap.createBitmap(temBitmap, 0, 0, width, height);
+        //view.destroyDrawingCache();//不清空，第二次截屏则使用的是缓存的同一张。
+        //return bitmap;
+
+        /*获取windows中最顶层的view*/
+        View view = context.getWindow().getDecorView();
+
+        //允许当前窗口保存缓存信息
+        view.setDrawingCacheEnabled(true);
+        view.buildDrawingCache();
+
+        //获取状态栏高度
+        Rect rect = new Rect();
+        view.getWindowVisibleDisplayFrame(rect);
+        int statusBarHeight = rect.top;
+
+        WindowManager windowManager = context.getWindowManager();
+
+        //获取屏幕宽和高
+        DisplayMetrics outMetrics = new DisplayMetrics();
+        windowManager.getDefaultDisplay().getMetrics(outMetrics);
+        int width = outMetrics.widthPixels;
+        int height = outMetrics.heightPixels;
+
+        //去掉状态栏
+        Bitmap bitmap = Bitmap.createBitmap(view.getDrawingCache(), 0, statusBarHeight, width,
+                height - statusBarHeight);
+
+        //销毁缓存信息
+        view.destroyDrawingCache();
+        view.setDrawingCacheEnabled(false);
+
+        return bitmap;
+    }
+
+    public File saveBitmapFile(Bitmap bitmap, String fileName) throws IOException {
+        String SAVE_PIC_PATH = Environment.getExternalStorageState().equalsIgnoreCase(Environment.MEDIA_MOUNTED)
+                ? Environment.getExternalStorageDirectory().getAbsolutePath() : "/mnt/sdcard";
+
+        String SAVE_REAL_PATH = SAVE_PIC_PATH + "/good/savePic";
+
+        String subForder = SAVE_REAL_PATH;
+        File foder = new File(subForder);
+        if (!foder.exists())
+            foder.mkdirs();
+
+        File myCaptureFile = new File(subForder, fileName);
+        if (!myCaptureFile.exists())
+            myCaptureFile.createNewFile();
+        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(myCaptureFile));
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bos);
+        bos.flush();
+        bos.close();
+
+        if (myCaptureFile != null) {
+            Toast.makeText(this, "已截图", Toast.LENGTH_SHORT);
+            return myCaptureFile;
+        } else {
+            return null;
+        }
+
+        //File file = new File(filePath);//将要保存图片的路径
+        //try {
+        //    BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(file));
+        //    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bos);
+        //    bos.flush();
+        //    bos.close();
+        //    return file;
+        //} catch (IOException e) {
+        //    e.printStackTrace();
+        //}
+        //return null;
+    }
+
+    /**
+     * Get a file path from a Uri. This will get the the path for Storage Access
+     * Framework Documents, as well as the _data field for the MediaStore and
+     * other file-based ContentProviders.
+     *
+     * @param context The context.
+     * @param uri The Uri to query.
+     * @author paulburke
+     */
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+    public static String getPath(final Context context, final Uri uri) {
+
+        final boolean isKitKat = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
+
+        // DocumentProvider
+        if (isKitKat && DocumentsContract.isDocumentUri(context, uri)) {
+            // ExternalStorageProvider
+            if (isExternalStorageDocument(uri)) {
+                final String docId = DocumentsContract.getDocumentId(uri);
+                final String[] split = docId.split(":");
+                final String type = split[0];
+
+                if ("primary".equalsIgnoreCase(type)) {
+                    return Environment.getExternalStorageDirectory() + "/" + split[1];
+                }
+
+                // TODO handle non-primary volumes
+            }
+            // DownloadsProvider
+            else if (isDownloadsDocument(uri)) {
+
+                final String id = DocumentsContract.getDocumentId(uri);
+                final Uri contentUri = ContentUris.withAppendedId(
+                        Uri.parse("content://downloads/public_downloads"), Long.valueOf(id));
+
+                return getDataColumn(context, contentUri, null, null);
+            }
+            // MediaProvider
+            else if (isMediaDocument(uri)) {
+                final String docId = DocumentsContract.getDocumentId(uri);
+                final String[] split = docId.split(":");
+                final String type = split[0];
+
+                Uri contentUri = null;
+                if ("image".equals(type)) {
+                    contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+                } else if ("video".equals(type)) {
+                    contentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
+                } else if ("audio".equals(type)) {
+                    contentUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+                }
+
+                final String selection = "_id=?";
+                final String[] selectionArgs = new String[] {
+                        split[1]
+                };
+
+                return getDataColumn(context, contentUri, selection, selectionArgs);
+            }
+        }
+        // MediaStore (and general)
+        else if ("content".equalsIgnoreCase(uri.getScheme())) {
+            return getDataColumn(context, uri, null, null);
+        }
+        // File
+        else if ("file".equalsIgnoreCase(uri.getScheme())) {
+            return uri.getPath();
+        }
+
+        return null;
+    }
+
+    /**
+     * Get the value of the data column for this Uri. This is useful for
+     * MediaStore Uris, and other file-based ContentProviders.
+     *
+     * @param context The context.
+     * @param uri The Uri to query.
+     * @param selection (Optional) Filter used in the query.
+     * @param selectionArgs (Optional) Selection arguments used in the query.
+     * @return The value of the _data column, which is typically a file path.
+     */
+    public static String getDataColumn(Context context, Uri uri, String selection,
+                                       String[] selectionArgs) {
+
+        Cursor cursor = null;
+        final String column = "_data";
+        final String[] projection = {
+                column
+        };
+
+        try {
+            cursor = context.getContentResolver().query(uri, projection, selection, selectionArgs,
+                    null);
+            if (cursor != null && cursor.moveToFirst()) {
+                final int column_index = cursor.getColumnIndexOrThrow(column);
+                return cursor.getString(column_index);
+            }
+        } finally {
+            if (cursor != null)
+                cursor.close();
+        }
+        return null;
+    }
+
+
+    /**
+     * @param uri The Uri to check.
+     * @return Whether the Uri authority is ExternalStorageProvider.
+     */
+    public static boolean isExternalStorageDocument(Uri uri) {
+        return "com.android.externalstorage.documents".equals(uri.getAuthority());
+    }
+
+    /**
+     * @param uri The Uri to check.
+     * @return Whether the Uri authority is DownloadsProvider.
+     */
+    public static boolean isDownloadsDocument(Uri uri) {
+        return "com.android.providers.downloads.documents".equals(uri.getAuthority());
+    }
+
+    /**
+     * @param uri The Uri to check.
+     * @return Whether the Uri authority is MediaProvider.
+     */
+    public static boolean isMediaDocument(Uri uri) {
+        return "com.android.providers.media.documents".equals(uri.getAuthority());
+    }
+
 }
+

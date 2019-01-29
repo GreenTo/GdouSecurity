@@ -32,4 +32,20 @@
             android:background="@mipmap/bg_btn_all_control"
             android:onClick="onTrackAnalysis"/>
 
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/screen_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|left"
+            android:layout_margin="15dp"
+            android:elevation="8dp"
+            android:src="@drawable/jieping"/>
+
+    </FrameLayout>
+
+
 </RelativeLayout>

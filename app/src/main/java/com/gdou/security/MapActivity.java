@@ -185,8 +185,8 @@ public class MapActivity extends AppCompatActivity {
     }
 
     public void upLocation(String latitude,String longitude,long id) {
-        String address = "http://120.77.149.103:1234/admin/sendStation";
-        HttpUtil.sendLocationRequest(address, id, latitude, longitude, new Callback() {
+        //String address = "http://120.77.149.103:1234/admin/sendStation";
+        HttpUtil.sendLocationRequest(id, latitude, longitude, new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
                 e.printStackTrace();

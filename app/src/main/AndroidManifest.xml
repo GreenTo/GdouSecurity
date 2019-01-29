@@ -16,7 +16,8 @@
     <!-- 用于读取手机当前的状态 -->
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <!-- 写入扩展存储，向扩展卡写入数据，用于写入对象存储BOS数据 -->
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+        <!--android:maxSdkVersion="18"/>-->
     <!-- 访问网络，网络定位需要上网 -->
     <uses-permission android:name="android.permission.INTERNET" />
     <!-- SD卡读取权限，用于写入对象存储BOS数据 -->
@@ -29,6 +30,8 @@
     <uses-permission android:name="android.permission.ACCESS_LOCATION_EXTRA_COMMANDS" />
     <!-- 用于Android M及以上系统，申请加入忽略电池优化白名单 -->
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
 
     <application
         android:name=".TrackApplication"
@@ -52,6 +55,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <activity android:name=".MainActivity" />
 
         <service
@@ -81,5 +85,7 @@
         <activity android:name=".TrackQueryOptionsActivity"/>
 
     </application>
+
+    <!--50:44:59:D3:6B:E4:ED:12:2D:54:8D:C1:68:77:83:22:A9:FD:4A:0E-->
 
 </manifest>

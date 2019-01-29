@@ -32,7 +32,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
     private String password;
 
-    private String address;
+    //private String address;
 
     private static long SERVE_ERROR = 1;
 
@@ -69,9 +69,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             case R.id.sign:
                 username = usernameText.getText().toString();
                 password = passwordText.getText().toString();
-                address = "http://120.77.149.103:1234/admin/check";
+                //address = "http://120.77.149.103:1234/admin/check";
 
-                HttpUtil.loginRequest(address, username, password, new Callback() {
+                HttpUtil.loginRequest(username, password, new Callback() {
                     @Override
                     public void onFailure(Call call, IOException e) {
                         e.printStackTrace();
