@@ -21,12 +21,14 @@ public class HttpUtil {
 
     public static final MediaType MEDIA_TYPE_PNG = MediaType.parse("image/*");
 
-    public static String IP = "http://120.77.149.103:1234";
+    //public static String IP = "http://120.77.149.103:1234";
+
+    public static String IP = "http://192.168.2.125:1234";
 
     public static void sendLocationRequest(long id,String latitude,String longitude,
                                          okhttp3.Callback callback){
 
-        String address = IP + "/admin/sendStation";
+        String address = IP + "/api/sendStation";
 
         MultipartBody body = new MultipartBody.Builder()
                 .setType(MultipartBody.FORM)
@@ -47,17 +49,12 @@ public class HttpUtil {
     public static void loginRequest(String account,String psw,
                                     okhttp3.Callback callback){
 
-        String address = IP + "/admin/check";
+        String address = IP + "/api/login";
 
         MultipartBody body = new MultipartBody.Builder()
                 .addFormDataPart("account", account)
                 .addFormDataPart("psw", psw)
                 .build();
-
-        //OkHttpClient client = new OkHttpClient.Builder()
-        //        //.cookieJar(new CookieJarImpl(new MemoryCookieStore()))
-        //        .build();
-
 
         client = new OkHttpClient.Builder()
                 .cookieJar(new CookieJar() {
@@ -88,32 +85,53 @@ public class HttpUtil {
     public static void getInformation(String account,
                                       okhttp3.Callback callback){
 
-        //String url = address + "?" + "account=" + account;
-
-        String url = IP + "/admin/getInfo";
-
-        //OkHttpClient client = new OkHttpClient();
+        String address = IP + "/api/getGuardInfo" + "?account=" + account;
 
         Request request = new Request.Builder()
-                .url(url)
+                .url(address)
                 .get()
                 .build();
 
         client.newCall(request).enqueue(callback);
     }
 
-    public static void sendPic(File file, Callback callback) {
+    public static void sendPic(File file, String account, Callback callback) {
 
-        String address = IP + "/admin/sendPic";
+        String address = IP + "/api/sendPic";
 
         MultipartBody body = new MultipartBody.Builder()
                 .setType(MultipartBody.FORM)
                 .addFormDataPart("file", file.getName(), RequestBody.create(MEDIA_TYPE_PNG, file))
+                .addFormDataPart("name",account)
                 .build();
 
         Request request = new Request.Builder()
                 .url(address)
                 .post(body)
+                .build();
+
+        client.newCall(request).enqueue(callback);
+    }
+
+    public static void getLocation(Callback callback) {
+
+        String address = IP + "/api/getAllPosition";
+
+        Request request = new Request.Builder()
+                .url(address)
+                .get()
+                .build();
+
+        client.newCall(request).enqueue(callback);
+    }
+
+    public static void logout(Callback callback) {
+
+        String address = IP + "/logout";
+
+        Request request = new Request.Builder()
+                .url(address)
+                .get()
                 .build();
 
         client.newCall(request).enqueue(callback);

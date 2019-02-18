@@ -36,15 +36,19 @@ import com.baidu.trace.model.OnTraceListener;
 import com.baidu.trace.model.PushMessage;
 import com.baidu.trace.model.StatusCodes;
 import com.baidu.trace.model.TraceLocation;
+import com.gdou.security.data.LocationResult;
 import com.gdou.security.model.CurrentLocation;
 import com.gdou.security.receiver.TrackReceiver;
 import com.gdou.security.utils.CommonUtil;
 import com.gdou.security.utils.Constants;
 import com.gdou.security.utils.HttpUtil;
+import com.gdou.security.utils.LogUtil;
 import com.gdou.security.utils.MapUtil;
 import com.gdou.security.utils.ViewUtil;
+import com.google.gson.Gson;
 
 import java.io.IOException;
+import java.util.List;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -111,28 +115,15 @@ public class TracingActivity extends BaseActivity implements View.OnClickListene
     //用户id
     private long id;
 
+    private LocationResult locationResult;
+
+    private String TAG = "TracingActivity";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setTitle(R.string.tracing_title);
         setOnClickListener(this);
-        //List<String> permissionList = new ArrayList<>();
-        //if (ContextCompat.checkSelfPermission(TracingActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-        //    permissionList.add(Manifest.permission.ACCESS_FINE_LOCATION);
-        //}
-        //if (ContextCompat.checkSelfPermission(TracingActivity.this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
-        //    permissionList.add(Manifest.permission.READ_PHONE_STATE);
-        //}
-        //if (ContextCompat.checkSelfPermission(TracingActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-        //    permissionList.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
-        //}
-        //if (ContextCompat.checkSelfPermission(TracingActivity.this,Manifest.permission.ACCESS_LOCATION_EXTRA_COMMANDS) != PackageManager.PERMISSION_GRANTED) {
-        //    permissionList.add(Manifest.permission.ACCESS_LOCATION_EXTRA_COMMANDS);
-        //}
-        //if (!permissionList.isEmpty()) {
-        //    String [] permissions = permissionList.toArray(new String[permissionList.size()]);
-        //    ActivityCompat.requestPermissions(TracingActivity.this, permissions, 1);
-        //}
         init();
         Intent intent = getIntent();
         id = intent.getLongExtra("id",0);
@@ -292,6 +283,7 @@ public class TracingActivity extends BaseActivity implements View.OnClickListene
                 trackApp.getCurrentLocation(entityListener, trackListener);
                 realTimeHandler.postDelayed(this, interval * 1000);
             }
+            getAllLocation();
         }
     }
 
@@ -309,33 +301,24 @@ public class TracingActivity extends BaseActivity implements View.OnClickListene
         trackApp.mClient.stopRealTimeLoc();
     }
 
-    //@Override
-    //protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-    //    if (null == data) {
-    //        return;
-    //    }
-    //
-    //    if (data.hasExtra("locationMode")) {
-    //        LocationMode locationMode = LocationMode.valueOf(data.getStringExtra("locationMode"));
-    //        trackApp.mClient.setLocationMode(locationMode);
-    //    }
-    //
-    //    if (data.hasExtra("isNeedObjectStorage")) {
-    //        boolean isNeedObjectStorage = data.getBooleanExtra("isNeedObjectStorage", false);
-    //        trackApp.mTrace.setNeedObjectStorage(isNeedObjectStorage);
-    //    }
-    //
-    //    if (data.hasExtra("gatherInterval") || data.hasExtra("packInterval")) {
-    //        int gatherInterval = data.getIntExtra("gatherInterval", Constants.DEFAULT_GATHER_INTERVAL);
-    //        int packInterval = data.getIntExtra("packInterval", Constants.DEFAULT_PACK_INTERVAL);
-    //        TracingActivity.this.packInterval = packInterval;
-    //        trackApp.mClient.setInterval(gatherInterval, packInterval);
-    //    }
-    //
-    //    //        if (data.hasExtra("supplementMode")) {
-    //    //            mSupplementMode = SupplementMode.valueOf(data.getStringExtra("supplementMode"));
-    //    //        }
-    //}
+    public LocationResult getAllLocation() {
+        HttpUtil.getLocation(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                e.printStackTrace();
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                ResponseBody body = response.body();
+                byte[] bytes = body.bytes();
+                final String result = new String(bytes);
+                locationResult = new Gson().fromJson(result, LocationResult.class);
+                LogUtil.e(TAG,locationResult.toString());
+            }
+        });
+        return locationResult;
+    }
 
     private void initListener() {
 
@@ -388,7 +371,15 @@ public class TracingActivity extends BaseActivity implements View.OnClickListene
                     mapUtil.updateStatus(currentLatLng, true);
                 }
 
+                //getAllLocation();
+
                 upLocation(String.valueOf(currentLatLng.latitude),String.valueOf(currentLatLng.longitude),id);
+
+                if (locationResult != null) {
+                    List<LatLng> latLngList = mapUtil.convertLocat2Map(locationResult);
+                    mapUtil.updateStatus(latLngList,true);
+                }
+
             }
 
         };
@@ -659,7 +650,6 @@ public class TracingActivity extends BaseActivity implements View.OnClickListene
     }
 
     public void upLocation(String latitude,String longitude,long id) {
-        //String address = "http://120.77.149.103:1234/admin/sendStation";
         HttpUtil.sendLocationRequest(id, latitude, longitude, new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {

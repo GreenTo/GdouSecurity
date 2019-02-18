@@ -43,20 +43,24 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-            <!--<Button-->
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:drawableLeft="@drawable/tableactivation"
-            android:background="@drawable/roundButton"/>
-
             <ImageButton
                 android:id="@+id/startButton"
-                android:layout_width="wrap_content"
+                android:layout_marginTop="200dp"
+                android:layout_width="100dp"
                 android:background="@android:color/transparent"
+                android:layout_height="100dp"
+                android:layout_centerHorizontal="true"
+                android:scaleType="fitXY"
+                android:src="@drawable/start_patrol"/>
+
+            <TextView
+                android:id="@+id/tip_text"
+                android:layout_below="@id/startButton"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_centerInParent="true"
-                android:src="@drawable/tableactivation"/>
+                android:gravity="center"
+                android:text="点击上方图标开始巡逻"
+                android:textColor="@color/tipsText"/>
 
         </RelativeLayout>
 
@@ -67,7 +71,7 @@
             android:layout_gravity="bottom|right"
             android:layout_margin="15dp"
             android:elevation="8dp"
-            android:src="@drawable/chaxun"/>
+            android:src="@drawable/sousuo"/>
 
     </FrameLayout>
 

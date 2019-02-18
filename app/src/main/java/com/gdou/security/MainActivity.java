@@ -14,7 +14,6 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -68,6 +67,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private TrackApplication trackApp;
 
+    private static String TAG = "MainActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -118,7 +118,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void getInformation(){
         //String address = "http://120.77.149.103:1234/admin/getInfo";
         String username = UserData.username;
-        System.out.println(username);
         HttpUtil.getInformation(account, new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
@@ -132,8 +131,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 byte[] bytes = body.bytes();
                 String result = new String(bytes);
                 userResult = new Gson().fromJson(result, UserResult.class);
+                //LogUtil.e(TAG,userResult.toString());
                 UserData.id = userResult.data.guardId;
-                Log.d("MainActivity",userResult.toString());
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -160,6 +159,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.search_trace:
                 Intent intent1 = new Intent(MainActivity.this, TrackQueryActivity.class);
+                intent1.putExtra("name",account);
                 startActivity(intent1);
                 break;
             default:
@@ -186,6 +186,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         editor.remove("is_gather_started");
         editor.apply();
         BitmapUtil.clear();
+
+    //    退出登录
+        HttpUtil.logout(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                e.printStackTrace();
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+
+            }
+        });
     }
 
     @Override

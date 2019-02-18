@@ -23,6 +23,8 @@ public class BitmapUtil {
 
     public static BitmapDescriptor bmGcoding = null;
 
+    public static BitmapDescriptor locat = null;
+
     /**
      * 创建bitmap，在MainActivity onCreate()中调用
      */
@@ -32,6 +34,8 @@ public class BitmapUtil {
         bmEnd = BitmapDescriptorFactory.fromResource(R.mipmap.icon_end);
         bmGeo = BitmapDescriptorFactory.fromResource(R.mipmap.icon_geo);
         bmGcoding = BitmapDescriptorFactory.fromResource(R.mipmap.icon_gcoding);
+
+        locat = BitmapDescriptorFactory.fromResource(R.mipmap.weizhi);
     }
 
     /**
@@ -42,6 +46,8 @@ public class BitmapUtil {
         bmStart.recycle();
         bmEnd.recycle();
         bmGeo.recycle();
+
+        locat.recycle();
     }
 
     public static BitmapDescriptor getMark(Context context, int index) {

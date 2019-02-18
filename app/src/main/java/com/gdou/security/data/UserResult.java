@@ -10,12 +10,11 @@ public class UserResult {
 
     public class Data {
         public long guardId;
-        public String account;
+        //public String account;
         public String name;
         public int age;
         public String phone;
         public String number;
-
     }
 
 }

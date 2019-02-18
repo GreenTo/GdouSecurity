@@ -235,6 +235,8 @@ public class TrackQueryActivity extends BaseActivity
 
     private MapView mapView;
 
+    private String account;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -244,6 +246,9 @@ public class TrackQueryActivity extends BaseActivity
         init();
         sceenButton = findViewById(R.id.screen_button);
         sceenButton.setOnClickListener(this);
+
+        Intent intent = getIntent();
+        account = intent.getStringExtra("name");
     }
 
     /**
@@ -350,7 +355,7 @@ public class TrackQueryActivity extends BaseActivity
             Uri uri = data.getData();//得到uri，后面就是将uri转化成file的过程。
             String img_path = getPath(this, uri);
             File file = new File(img_path);
-            uploadPic(file);
+            uploadPic(file,account);
         }
     }
 
@@ -461,8 +466,8 @@ public class TrackQueryActivity extends BaseActivity
         }
     }
 
-    private void uploadPic(File file) {
-        HttpUtil.sendPic(file, new Callback() {
+    private void uploadPic(File file, String account) {
+        HttpUtil.sendPic(file,account, new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
                 e.printStackTrace();

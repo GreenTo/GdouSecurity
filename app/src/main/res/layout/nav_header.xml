@@ -3,6 +3,6 @@
     android:layout_width="match_parent"
     android:layout_height="180dp"
     android:padding="10dp"
-    android:background="@drawable/mat3">
+    android:background="@drawable/header">
 
 </RelativeLayout>
