@@ -3,6 +3,8 @@ package com.gdou.security;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -34,18 +36,40 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
     //private String address;
 
-    private static long SERVE_ERROR = 1;
+    //private static long SERVE_ERROR = 1;
 
-    private static long CLIENT_ERROR = 2;
+    //private static long CLIENT_ERROR = 2;
 
-    private static long LOGIN_SUCCESS = 3;
+    //private static long LOGIN_SUCCESS = 3;
 
-    private long status = 0;
+    //private long status = 0;
 
     private SharedPreferences pref;
 
     private SharedPreferences.Editor editor;
 
+    private Handler handler = new Handler() {
+
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case 1:
+                    //SmartToast.error("服务器发生故障，请稍后再试...");
+                    Toast.makeText(LoginActivity.this,"服务器发生故障，请稍后再试...",Toast.LENGTH_SHORT).show();
+                    break;
+                case 2:
+                    //SmartToast.warning("账号或密码错误!");
+                    Toast.makeText(LoginActivity.this,"账号或密码错误!",Toast.LENGTH_SHORT).show();
+                    break;
+                case 3:
+                    Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                    intent.putExtra("account",username);
+                    startActivity(intent);
+                    break;
+            }
+        }
+    };
+    
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -69,13 +93,14 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             case R.id.sign:
                 username = usernameText.getText().toString();
                 password = passwordText.getText().toString();
-                //address = "http://120.77.149.103:1234/admin/check";
 
+                final Message message = new Message();
                 HttpUtil.loginRequest(username, password, new Callback() {
                     @Override
                     public void onFailure(Call call, IOException e) {
                         e.printStackTrace();
-                        status = SERVE_ERROR;
+                        message.what = 1;
+                        handler.sendMessage(message);
                     }
 
                     @Override
@@ -84,25 +109,18 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                         byte[] bytes = body.bytes();
                         String result = new String(bytes);
                         if (!result.contains("200")){
-                            status = CLIENT_ERROR;
+                            message.what = 2;
                         }else {
+                            message.what = 3;
                             editor = pref.edit();
                             editor.putString("username",username);
                             editor.putString("password",password);
                             editor.apply();
-                            status = LOGIN_SUCCESS;
                             UserData.username = username;
-                            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                            intent.putExtra("account",username);
-                            startActivity(intent);
                         }
+                        handler.sendMessage(message);
                     }
                 });
-                if (status == CLIENT_ERROR) {
-                    Toast.makeText(LoginActivity.this, "用户名或密码错误！", Toast.LENGTH_SHORT).show();
-                } else if (status == SERVE_ERROR) {
-                    Toast.makeText(LoginActivity.this,"服务器发生错误！",Toast.LENGTH_SHORT).show();
-                }
                 break;
             default:
                 break;

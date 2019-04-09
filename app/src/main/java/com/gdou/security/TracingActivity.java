@@ -24,6 +24,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.alibaba.fastjson.JSON;
 import com.baidu.mapapi.map.MapView;
 import com.baidu.mapapi.model.LatLng;
 import com.baidu.trace.api.entity.OnEntityListener;
@@ -36,24 +37,22 @@ import com.baidu.trace.model.OnTraceListener;
 import com.baidu.trace.model.PushMessage;
 import com.baidu.trace.model.StatusCodes;
 import com.baidu.trace.model.TraceLocation;
+import com.gdou.security.data.Data;
 import com.gdou.security.data.LocationResult;
 import com.gdou.security.model.CurrentLocation;
 import com.gdou.security.receiver.TrackReceiver;
 import com.gdou.security.utils.CommonUtil;
 import com.gdou.security.utils.Constants;
-import com.gdou.security.utils.HttpUtil;
 import com.gdou.security.utils.LogUtil;
 import com.gdou.security.utils.MapUtil;
 import com.gdou.security.utils.ViewUtil;
-import com.google.gson.Gson;
 
-import java.io.IOException;
+import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.drafts.Draft_6455;
+import org.java_websocket.handshake.ServerHandshake;
+
+import java.net.URI;
 import java.util.List;
-
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.Response;
-import okhttp3.ResponseBody;
 
 /**
  * 轨迹追踪
@@ -115,9 +114,16 @@ public class TracingActivity extends BaseActivity implements View.OnClickListene
     //用户id
     private long id;
 
+    //用户姓名
+    private String name;
+
     private LocationResult locationResult;
 
-    private String TAG = "TracingActivity";
+    private static String TAG = "TracingActivity";
+
+    private String address = "ws://120.77.149.103:1234/websocket";
+
+    private WebSocketClient mSocketClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -127,27 +133,7 @@ public class TracingActivity extends BaseActivity implements View.OnClickListene
         init();
         Intent intent = getIntent();
         id = intent.getLongExtra("id",0);
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        switch (requestCode) {
-            case 1:
-                if (grantResults.length > 0) {
-                    for (int result : grantResults) {
-                        if (result != PackageManager.PERMISSION_GRANTED) {
-                            Toast.makeText(this,"必须同意所有权限才能使用本程序",Toast.LENGTH_SHORT).show();
-                            finish();
-                            return;
-                        }
-                    }
-                }else {
-                    Toast.makeText(this,"发生未知错误",Toast.LENGTH_SHORT).show();
-                    finish();
-                }
-            default:
-                break;
-        }
+        name = intent.getStringExtra("name");
     }
 
     private void init() {
@@ -169,6 +155,47 @@ public class TracingActivity extends BaseActivity implements View.OnClickListene
         setGatherBtnStyle();
 
         notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+        initWebSocket();
+    }
+
+    private void initWebSocket(){
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    mSocketClient = new WebSocketClient(new URI(address),new Draft_6455()) {
+                        @Override
+                        public void onOpen(ServerHandshake handshakedata) {
+                            LogUtil.e(TAG,"打开通道:\n" + handshakedata.getHttpStatus());
+                        }
+
+                        @Override
+                        public void onMessage(String message) {
+                            LogUtil.e(TAG,"接收消息:\n" + message);
+                            if (!message.equals("[]") && !message.trim().equals("连接成功") && !message.trim().equals("和服务器断开连接!")) {
+                                locationResult = getAllLocation(message);
+                            }
+                        }
+
+                        @Override
+                        public void onClose(int code, String reason, boolean remote) {
+                            LogUtil.e(TAG,"closed with exit code " + code + " additional info: " + reason);
+                            LogUtil.e(TAG,"通道关闭");
+                        }
+
+                        @Override
+                        public void onError(Exception ex) {
+                            LogUtil.e(TAG,"链接错误");
+                        }
+                    };
+
+                    mSocketClient.connect();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
     }
 
     @Override
@@ -200,7 +227,6 @@ public class TracingActivity extends BaseActivity implements View.OnClickListene
                     trackApp.mClient.startGather(traceListener);
                 }
                 break;
-
             default:
                 break;
         }
@@ -283,7 +309,6 @@ public class TracingActivity extends BaseActivity implements View.OnClickListene
                 trackApp.getCurrentLocation(entityListener, trackListener);
                 realTimeHandler.postDelayed(this, interval * 1000);
             }
-            getAllLocation();
         }
     }
 
@@ -301,22 +326,17 @@ public class TracingActivity extends BaseActivity implements View.OnClickListene
         trackApp.mClient.stopRealTimeLoc();
     }
 
-    public LocationResult getAllLocation() {
-        HttpUtil.getLocation(new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-                e.printStackTrace();
-            }
+    public LocationResult getAllLocation(String message) {
 
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                ResponseBody body = response.body();
-                byte[] bytes = body.bytes();
-                final String result = new String(bytes);
-                locationResult = new Gson().fromJson(result, LocationResult.class);
-                LogUtil.e(TAG,locationResult.toString());
+        LocationResult locationResult = new LocationResult();
+        try {
+            List<Data> dataList = JSON.parseArray(message,Data.class);
+            for (Data result : dataList) {
+                locationResult.dataList.add(result);
             }
-        });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return locationResult;
     }
 
@@ -371,13 +391,11 @@ public class TracingActivity extends BaseActivity implements View.OnClickListene
                     mapUtil.updateStatus(currentLatLng, true);
                 }
 
-                //getAllLocation();
-
-                upLocation(String.valueOf(currentLatLng.latitude),String.valueOf(currentLatLng.longitude),id);
+                upLocation(String.valueOf(currentLatLng.latitude),String.valueOf(currentLatLng.longitude),id,name);
 
                 if (locationResult != null) {
                     List<LatLng> latLngList = mapUtil.convertLocat2Map(locationResult);
-                    mapUtil.updateStatus(latLngList,true);
+                    mapUtil.updateStatus(latLngList);
                 }
 
             }
@@ -634,7 +652,6 @@ public class TracingActivity extends BaseActivity implements View.OnClickListene
     @Override
     protected void onStop() {
         super.onStop();
-        //stopRealTimeLoc();
     }
 
     @Override
@@ -642,6 +659,7 @@ public class TracingActivity extends BaseActivity implements View.OnClickListene
         super.onDestroy();
         mapUtil.clear();
         stopRealTimeLoc();
+        mSocketClient.close();
     }
 
     @Override
@@ -649,20 +667,9 @@ public class TracingActivity extends BaseActivity implements View.OnClickListene
         return R.layout.activity_tracing;
     }
 
-    public void upLocation(String latitude,String longitude,long id) {
-        HttpUtil.sendLocationRequest(id, latitude, longitude, new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-                e.printStackTrace();
-            }
-
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                ResponseBody body = response.body();
-                byte[] bytes = body.bytes();
-                String result = new String(bytes);
-            }
-        });
+    public void upLocation(String latitude, String longitude, long id, String name) {
+        String message = "x:" + longitude + "y:" + latitude + "id:" + id + "name:" + name;
+        mSocketClient.send(message);
     }
 
     @Override
@@ -690,4 +697,29 @@ public class TracingActivity extends BaseActivity implements View.OnClickListene
         return builder.create();
     }
 
+    @Override
+    public void onBack(View v) {
+        onBackPressed();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case 1:
+                if (grantResults.length > 0) {
+                    for (int result : grantResults) {
+                        if (result != PackageManager.PERMISSION_GRANTED) {
+                            Toast.makeText(this,"必须同意所有权限才能使用本程序",Toast.LENGTH_SHORT).show();
+                            finish();
+                            return;
+                        }
+                    }
+                }else {
+                    Toast.makeText(this,"发生未知错误",Toast.LENGTH_SHORT).show();
+                    finish();
+                }
+            default:
+                break;
+        }
+    }
 }

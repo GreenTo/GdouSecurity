@@ -132,6 +132,8 @@ public class TrackApplication extends Application {
         });
 
         clearTraceStatus();
+
+
     }
 
     /**

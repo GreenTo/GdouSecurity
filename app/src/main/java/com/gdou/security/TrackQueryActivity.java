@@ -461,6 +461,8 @@ public class TrackQueryActivity extends BaseActivity
                 intent.addCategory(Intent.CATEGORY_OPENABLE);
                 startActivityForResult(intent, 1);
                 break;
+            case R.id.btn_activity_back:
+                super.onBackPressed();
             default:
                 break;
         }

@@ -16,7 +16,7 @@ public class LogUtil {
 
     public static final int NOTHING = 6;
 
-    public static int level = ERROR;
+    public static int level = WRAN;
 
     public static void v(String tag,String msg){
         if (level < VERBOSE) {

@@ -13,13 +13,14 @@
             android:layout_height="match_parent"
             android:layout_weight="0.15"
             android:gravity="center"
-            android:onClick="onBack">
+            android:onClick="onBack"
+            android:orientation="horizontal">
 
         <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
-                android:background="@mipmap/icon_back"/>
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:background="@mipmap/icon_back"/>
     </LinearLayout>
 
 

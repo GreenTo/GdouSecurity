@@ -21,9 +21,9 @@ public class HttpUtil {
 
     public static final MediaType MEDIA_TYPE_PNG = MediaType.parse("image/*");
 
-    //public static String IP = "http://120.77.149.103:1234";
+    public static String IP = "http://120.77.149.103:1234";
 
-    public static String IP = "http://192.168.2.125:1234";
+    //public static String IP = "http://192.168.2.125:1234";
 
     public static void sendLocationRequest(long id,String latitude,String longitude,
                                          okhttp3.Callback callback){

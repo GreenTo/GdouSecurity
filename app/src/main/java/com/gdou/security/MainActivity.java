@@ -106,9 +106,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (ContextCompat.checkSelfPermission(MainActivity.this,Manifest.permission.ACCESS_LOCATION_EXTRA_COMMANDS) != PackageManager.PERMISSION_GRANTED) {
             permissionList.add(Manifest.permission.ACCESS_LOCATION_EXTRA_COMMANDS);
         }
-        //if (ContextCompat.checkSelfPermission(MainActivity.this,Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-        //    permissionList.add(Manifest.permission.READ_EXTERNAL_STORAGE);
-        //}
         if (!permissionList.isEmpty()) {
             String [] permissions = permissionList.toArray(new String[permissionList.size()]);
             ActivityCompat.requestPermissions(MainActivity.this, permissions, 1);
@@ -116,34 +113,37 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void getInformation(){
-        //String address = "http://120.77.149.103:1234/admin/getInfo";
         String username = UserData.username;
-        HttpUtil.getInformation(account, new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-                e.printStackTrace();
-            }
+        if (account.isEmpty()) {
 
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                ResponseBody body = response.body();
-                String responseText = body.toString();
-                byte[] bytes = body.bytes();
-                String result = new String(bytes);
-                userResult = new Gson().fromJson(result, UserResult.class);
-                //LogUtil.e(TAG,userResult.toString());
-                UserData.id = userResult.data.guardId;
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        telItem.setTitle(userResult.data.phone);
-                        nameItem.setTitle(userResult.data.name);
-                        ageItem.setTitle(userResult.data.age + "岁");
-                        numberItem.setTitle(userResult.data.number);
-                    }
-                });
-            }
-        });
+        }else {
+            HttpUtil.getInformation(account, new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    e.printStackTrace();
+                }
+
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    ResponseBody body = response.body();
+                    String responseText = body.toString();
+                    byte[] bytes = body.bytes();
+                    String result = new String(bytes);
+                    userResult = new Gson().fromJson(result, UserResult.class);
+                    //LogUtil.e(TAG,userResult.toString());
+                    UserData.id = userResult.data.guardId;
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            telItem.setTitle(userResult.data.phone);
+                            nameItem.setTitle(userResult.data.name);
+                            ageItem.setTitle(userResult.data.age + "岁");
+                            numberItem.setTitle(userResult.data.number);
+                        }
+                    });
+                }
+            });
+        }
     }
 
     @Override
@@ -155,6 +155,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.startButton:
                 Intent intent = new Intent(MainActivity.this, TracingActivity.class);
                 intent.putExtra("id",userResult.data.guardId);
+                intent.putExtra("name",userResult.data.name);
                 startActivity(intent);
                 break;
             case R.id.search_trace:

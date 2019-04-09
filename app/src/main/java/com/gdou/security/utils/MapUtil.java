@@ -23,6 +23,7 @@ import com.baidu.trace.model.CoordType;
 import com.baidu.trace.model.SortType;
 import com.baidu.trace.model.TraceLocation;
 import com.gdou.security.TrackApplication;
+import com.gdou.security.data.Data;
 import com.gdou.security.data.LocationResult;
 import com.gdou.security.model.CurrentLocation;
 
@@ -137,18 +138,13 @@ public class MapUtil {
             return null;
         }
         List<LatLng> latLngList = new ArrayList<>();
-        for (LocationResult.Data data : locationResult.dataList) {
+        for (Data data : locationResult.dataList) {
             double latitude = Double.valueOf(data.x);
             double longitude = Double.valueOf(data.y);
             if (Math.abs(latitude - 0.0) < 0.000001 && Math.abs(longitude - 0.0) < 0.000001) {
                 continue;
             }
             LatLng currentLatLng = new LatLng(latitude, longitude);
-            //LatLng sourceLatLng = currentLatLng;
-            //CoordinateConverter converter = new CoordinateConverter();
-            //converter.from(CoordinateConverter.CoordType.GPS);
-            //converter.coord(currentLatLng);
-            //currentLatLng = converter.convert();
             latLngList.add(currentLatLng);
         }
         return latLngList;
@@ -223,31 +219,22 @@ public class MapUtil {
         }
     }
 
-    public void updateStatus(List<LatLng> currentPointList, boolean showMarker) {
+    public void updateStatus(List<LatLng> currentPointList) {
         if (null == baiduMap || null == currentPointList) {
             return;
         }
 
-        if (oMoveMarkerList != null) {
-            for (Marker marker : oMoveMarkerList) {
-                marker.remove();
-                marker = null;
-            }
-        }
+        //if (oMoveMarkerList != null) {
+        //    for (Marker marker : oMoveMarkerList) {
+        //        marker.remove();
+        //        marker = null;
+        //    }
+        //}
 
         oMoveMarkerList = new ArrayList<>();
 
         for (int i = 0; i < currentPointList.size(); i++) {
             LatLng currentPoint = currentPointList.get(i);
-            if (null != baiduMap.getProjection()) {
-                Point screenPoint = baiduMap.getProjection().toScreenLocation(currentPoint);
-                // 点在屏幕上的坐标超过限制范围，则重新聚焦底图
-                //if (screenPoint.y < 200 || screenPoint.y > TrackApplication.screenHeight - 500
-                //        || screenPoint.x < 200 || screenPoint.x > TrackApplication.screenWidth - 200
-                //        || null == mapStatus) {
-                //    animateMapStatus(currentPoint, 17.0f);
-                //}
-            }
             Marker marker = addOverlay(currentPoint, BitmapUtil.locat, null);
             marker.setPosition(currentPoint);
             oMoveMarkerList.add(marker);

@@ -66,6 +66,9 @@ public class LocationService extends Service {
     public void initLocation(){
         LocationClientOption option = new LocationClientOption();
         option.setScanSpan(1000);
+        option.setOpenGps(true); // 打开gps
+        option.setLocationMode(LocationClientOption.LocationMode.Device_Sensors);
+        option.setCoorType("bd09ll");
         option.setIgnoreKillProcess(false);
         mLocationClient.setLocOption(option);
     }
